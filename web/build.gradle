@@ -1,0 +1,127 @@
+ext.appengineVersion = '1.9.28';
+ext.guavaVersion = '18.0';
+ext.jacksonVersion = '2.4.2';
+ext.gwtVersion='2.7'
+ext.guiceVersion = '4.0';
+
+buildscript {
+	repositories {
+		maven { url "https://github.com/steffenschaefer/gwt-gradle-plugin/raw/maven-repo/" }
+		mavenCentral()
+		jcenter()	
+	}
+	dependencies {
+		classpath "com.github.ben-manes:gradle-versions-plugin:0.5"
+		classpath "org.codehaus.groovy:groovy-backports-compat23:2.3.5" // uncomment if you're using Gradle 1.x
+		classpath "de.richsource.gradle.plugins:gwt-gradle-plugin:0.5"
+		classpath "com.google.appengine:gradle-appengine-plugin:1.9.28"
+	}
+}
+
+apply plugin: "java"
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "war"
+apply plugin: "gwt"
+apply plugin: "appengine"
+apply plugin: "com.github.ben-manes.versions"
+
+apply from: "$hs_home/hs.common/libs.gradle"
+apply from: "$hs_home/hs.application/libs.gradle"
+apply from: "$hs_home/hs.datastore/libs.gradle"
+apply from: "$hs_home/hs.engine/libs.gradle"
+
+sourceCompatibility = 1.7
+version = "1.0"
+
+repositories { mavenCentral() }
+
+gwt {
+	gwtVersion = '2.7'
+	modules "com.hs.rox.app.Application"
+
+	compiler {
+		strict = true;
+		enableClosureCompiler = true;
+		disableClassMetadata = true;
+		disableCastChecking = true;
+	}
+}
+
+compileGwt {
+	minHeapSize = "1024M"
+	maxHeapSize = "2048M"
+}
+
+dependencies {
+	appengineSdk "com.google.appengine:appengine-java-sdk:$appengineVersion"
+	compile files("libs/opencsv-2.4.jar")
+	compile "commons-beanutils:commons-beanutils:1.9.2"
+	compile "com.cedarsoftware:java-util:1.12.0"
+	compile "org.apache.tika:tika-core:1.6"
+	compile "org.apache.tika:tika-parsers:1.6"
+	compile "mysql:mysql-connector-java:5.1.33"
+	
+	testCompile "com.google.appengine:appengine-testing:$appengineVersion"
+	testCompile "junit:junit:4.+"
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir "src/main/java"
+			srcDir "src/main/manage"
+			srcDir "$hs_home/hs.application/src/main/java"
+			srcDir "$hs_home/hs.datastore/src/main/java"
+			srcDir "$hs_home/hs.common/src/main/java"
+			srcDir "$hs_home/hs.engine/src/main/java"
+		}
+		resources { srcDir "src/main/resources" }
+	}
+}
+
+eclipse{
+	project {
+		linkedResource name: 'hs.common', type: '2', location: "$hs_home/hs.common/src/main/java"
+		linkedResource name: 'hs.datastore', type: '2', location: "$hs_home/hs.datastore/src/main/java"
+		linkedResource name: 'hs.application', type: '2', location: "$hs_home/hs.application/src/main/java"
+		linkedResource name: 'hs.engine', type: '2', location: "$hs_home/hs.engine/src/main/java"
+	}
+	classpath {
+		file {
+			withXml {
+				def node = it.asNode()
+				node.appendNode('classpathentry', [kind: 'src', path: 'hs.common'])
+				node.appendNode('classpathentry', [kind: 'src', path: 'hs.datastore'])
+				node.appendNode('classpathentry', [kind: 'src', path: 'hs.application'])
+				node.appendNode('classpathentry', [kind: 'src', path: 'hs.engine'])
+			}
+			whenMerged  { classpath ->
+				classpath.entries.removeAll() { c ->  c.path == 'java'  }
+				classpath.entries.removeAll() { c ->  c.path == 'src/main/resources'  }
+			}
+		}
+	}
+}
+
+tasks.withType(JavaCompile) {
+	options.compilerArgs += ["-sourcepath", ""]
+}
+
+
+draftCompileGwt {
+	minHeapSize = "1024M"
+	maxHeapSize = "2048M"
+}
+
+appengine {
+	String appenginePath = "\\.appengine\\local_db.bin"
+	String projectDirectory = projectDir
+	String dir = projectDirectory + appenginePath
+	String jvmDirArg = "-Ddatastore.backing_store="
+	String jvmArg = jvmDirArg + dir
+
+	downloadSdk = true;
+	httpPort = 8888;
+	jvmFlags = [jvmArg]
+}

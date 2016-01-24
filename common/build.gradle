@@ -1,0 +1,85 @@
+ext.appengineVersion = '1.9.27';
+ext.guavaVersion = '18.0';
+ext.guiceVersion = '4.0';
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.github.ben-manes:gradle-versions-plugin:0.5"
+        classpath "de.richsource.gradle.plugins:gwt-gradle-plugin:0.6"
+        classpath "com.google.appengine:gradle-appengine-plugin:1.9.27"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "war"
+apply plugin: "appengine"
+apply plugin: "com.github.ben-manes.versions"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+version = "1.0"
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repository.jboss.org/nexus/content/groups/public/"
+    }
+}
+
+dependencies {
+    appengineSdk "com.google.appengine:appengine-java-sdk:$appengineVersion"
+    compile "com.google.appengine:appengine-remote-api:$appengineVersion"
+    compile "com.google.appengine:appengine-api-1.0-sdk:$appengineVersion"
+    compile "com.google.appengine:appengine-endpoints:$appengineVersion"
+
+    compile 'com.google.apis:google-api-services-bigquery:v2-rev256-1.21.0'
+
+    compile "com.google.inject.extensions:guice-servlet:$guiceVersion"
+    compile "com.google.inject.extensions:guice-assistedinject:$guiceVersion"
+
+    compile "com.google.guava:guava:$guavaVersion"
+    compile "com.google.inject:guice:$guiceVersion"
+
+    compile "org.apache.commons:commons-lang3:3.3.2"
+
+    compile "com.googlecode.objectify:objectify:5.1.9"
+    compile "joda-time:joda-time:2.4"
+    compile "com.cedarsoftware:java-util:1.12.0"
+
+    compile "javax.servlet:javax.servlet-api:3.0.1"
+
+    testCompile "com.google.appengine:appengine-testing:$appengineVersion"
+    testCompile "junit:junit:4.+"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "src/main/java"
+        }
+        resources {
+            srcDir "src/main/resources"
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-sourcepath", ""]
+}
+
+
+appengine {
+    String appenginePath = "\\.appengine\\local_db.bin"
+    String projectDirectory = projectDir
+    String dir = projectDirectory + appenginePath
+    String jvmDirArg = "-Ddatastore.backing_store="
+    String jvmArg = jvmDirArg + dir
+
+    downloadSdk = true;
+    httpPort = 8888;
+    jvmFlags = [jvmArg]
+}
