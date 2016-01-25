@@ -1,15 +1,20 @@
 package com.hs.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by Evan Ruff on 1/18/2016.
  */
-public class BaseUser
+public class BaseUser implements Serializable
 {
 	private String name;
 	private boolean isAdmin = true;
 	private Date created = new Date();
+
+	public BaseUser()
+	{
+	}
 
 	public BaseUser( String name )
 	{
