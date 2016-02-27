@@ -1,16 +1,17 @@
 package com.hs.config;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
-import com.hs.user.UserService;
+import com.google.inject.servlet.RequestScoped;
+import com.googlecode.objectify.ObjectifyFilter;
+import com.hs.security.RequestUserProvider;
+import com.hs.security.SecurityInterceptor;
 
-import java.io.IOException;
-import java.util.Properties;
+import javax.inject.Singleton;
 
 /**
- * Created by Evan Ruff on 1/18/2016.
+ * Created by gte619n on 2/3/16.
  */
-public class ApplicationResources extends AbstractModule
+public class BaseResourceModule extends AbstractModule
 {
 	/*--------------------------------------------
 	|             C O N S T A N T S             |
@@ -28,31 +29,26 @@ public class ApplicationResources extends AbstractModule
 	|   P U B L I C    A P I    M E T H O D S   |
 	============================================*/
 
+	@Override
+	protected void configure()
+	{
+		bind( BaseExceptionMapper.class );
+		bind( SecurityInterceptor.class );
+
+		bind( RequestUserProvider.class ).in( RequestScoped.class );
+		bind( ObjectifyFilter.class ).in( Singleton.class );
+
+		// bind( ApiListingResource.class );
+		// bind( SwaggerSerializers.class );
+	}
+
 	/*--------------------------------------------
 	|    N O N - P U B L I C    M E T H O D S   |
 	============================================*/
 
-	@Override
-	protected void configure()
-	{
-		try
-		{
-			Properties configProps = new Properties();
-			configProps.load( getClass().getClassLoader().getResourceAsStream( "config.properties" ) );
-			Names.bindProperties( binder(), configProps );
-		}
-		catch ( IOException ioEx )
-		{
-			System.err.println( "Could not load properties file" );
-			ioEx.printStackTrace( System.err );
-		}
-
-		bind( UserService.class );
-	}
-
 	/*--------------------------------------------
 	|  A C C E S S O R S / M O D I F I E R S    |
-    ============================================*/
+	============================================*/
 
 	/*--------------------------------------------
 	|       I N L I N E    C L A S S E S        |

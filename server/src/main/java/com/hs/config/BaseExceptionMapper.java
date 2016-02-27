@@ -1,4 +1,4 @@
-package com.hs.exceptionMapping;
+package com.hs.config;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
