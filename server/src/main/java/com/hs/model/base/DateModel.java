@@ -1,11 +1,10 @@
-package com.hs.security;
+package com.hs.model.base;
 
-import com.hs.model.User;
+import com.googlecode.objectify.annotation.Index;
 
-/**
- * Created by gte619n on 1/25/16.
- */
-public class RequestUserProvider
+import java.util.Date;
+
+public class DateModel extends Model
 {
 	/*--------------------------------------------
 	|             C O N S T A N T S             |
@@ -15,19 +14,38 @@ public class RequestUserProvider
 	|    I N S T A N C E   V A R I A B L E S    |
 	============================================*/
 
-	private User user;
+	@Index private Date startDate = new Date();
+
+	@Index private Date endDate;
+
+	@Index private boolean active;
 
 	/*--------------------------------------------
 	|         C O N S T R U C T O R S           |
 	============================================*/
 
-	public RequestUserProvider()
+	public DateModel()
 	{
+	}
+
+	public DateModel( String guid )
+	{
+		super( guid );
 	}
 
 	/*--------------------------------------------
 	|   P U B L I C    A P I    M E T H O D S   |
 	============================================*/
+
+	public boolean isCurrent()
+	{
+		return ( ( getEndDate() == null ) || ( getEndDate().after( new Date() ) ) );
+	}
+
+	public void setActivityInformation()
+	{
+		this.active = isCurrent();
+	}
 
 	/*--------------------------------------------
 	|    N O N - P U B L I C    M E T H O D S   |
@@ -37,14 +55,34 @@ public class RequestUserProvider
 	|  A C C E S S O R S / M O D I F I E R S    |
 	============================================*/
 
-	public User getUser()
+	public Date getStartDate()
 	{
-		return user;
+		return startDate;
 	}
 
-	public void setUser( User user )
+	public void setStartDate( Date startDate )
 	{
-		this.user = user;
+		this.startDate = startDate;
+	}
+
+	public Date getEndDate()
+	{
+		return endDate;
+	}
+
+	public void setEndDate( Date endDate )
+	{
+		this.endDate = endDate;
+	}
+
+	public boolean isActive()
+	{
+		return active;
+	}
+
+	public void setActive( boolean active )
+	{
+		this.active = active;
 	}
 
 	/*--------------------------------------------

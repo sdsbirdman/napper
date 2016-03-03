@@ -1,10 +1,14 @@
 package com.hs.security;
 
+import com.google.appengine.repackaged.com.google.api.client.util.Strings;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.hs.model.BaseUser;
+import com.hs.AppMemcache;
+import com.hs.datastore.UserDAO;
+import com.hs.model.AccessToken;
+import com.hs.model.User;
 import org.jboss.resteasy.annotations.interception.ServerInterceptor;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethodInvoker;
@@ -18,7 +22,10 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by gte619n on 1/25/16.
@@ -43,15 +50,17 @@ public class SecurityInterceptor implements ContainerRequestFilter
 	============================================*/
 
 	private final Provider<RequestUserProvider> userProvider;
+	private final UserDAO userDAO;
 
 	/*--------------------------------------------
 	|         C O N S T R U C T O R S           |
 	============================================*/
 
 	@Inject
-	public SecurityInterceptor( Provider<RequestUserProvider> userProvider )
+	public SecurityInterceptor( Provider<RequestUserProvider> userProvider, UserDAO userDAO )
 	{
 		this.userProvider = userProvider;
+		this.userDAO = userDAO;
 	}
 
 	/*--------------------------------------------
@@ -62,12 +71,12 @@ public class SecurityInterceptor implements ContainerRequestFilter
 	public void filter( ContainerRequestContext requestContext ) throws IOException
 	{
 
-		ResourceMethodInvoker methodInvoker = (ResourceMethodInvoker) requestContext.getProperty( RESOURCE_INVOKER );
+		ResourceMethodInvoker methodInvoker = ( ResourceMethodInvoker ) requestContext.getProperty( RESOURCE_INVOKER );
 		Method method = methodInvoker.getMethod();
 
-		if (!method.isAnnotationPresent( PermitAll.class ))
+		if ( !method.isAnnotationPresent( PermitAll.class ) )
 		{
-			if (method.isAnnotationPresent( DenyAll.class ))
+			if ( method.isAnnotationPresent( DenyAll.class ) )
 			{
 				requestContext.abortWith( ACCESS_FORBIDDEN );
 				return;
@@ -76,7 +85,7 @@ public class SecurityInterceptor implements ContainerRequestFilter
 			final MultivaluedMap<String, String> headers = requestContext.getHeaders();
 			final List<String> authorization = headers.get( AUTHORIZATION_PROPERTY );
 
-			if (authorization == null || authorization.isEmpty())
+			if ( authorization == null || authorization.isEmpty() )
 			{
 				requestContext.abortWith( ACCESS_DENIED );
 				return;
@@ -84,40 +93,25 @@ public class SecurityInterceptor implements ContainerRequestFilter
 
 			final String encodedToken = authorization.get( 0 ).replaceFirst( AUTHENTICATION_SCHEME + " ", "" );
 			String decodedToken = new String( BaseEncoding.base64().decode( encodedToken ) );
+			User user = getUser( decodedToken );
 
-			//Split username and password tokens
-			Iterator<String> tokenItr = Splitter.on( "," ).split( decodedToken ).iterator();
-			final String username = tokenItr.next();
-			final String token = tokenItr.next();
-			final String device = tokenItr.next();
-
-			System.out.println( username );
-			System.out.println( token );
-
-			BaseUser user = getUser( username, token, device );
-
-			if (user == null)
+			if ( user == null )
 			{
 				requestContext.abortWith( ACCESS_DENIED );
 				return;
 			}
-			if (method.isAnnotationPresent( RolesAllowed.class ))
+			if ( method.isAnnotationPresent( RolesAllowed.class ) )
 			{
 				RolesAllowed rolesAnnotation = method.getAnnotation( RolesAllowed.class );
 				Set<String> rolesSet = new HashSet<String>( Arrays.asList( rolesAnnotation.value() ) );
 
 				//Is user valid?
-				if (!isUserAllowed( user, rolesSet ))
+				if ( !isUserAllowed( user, rolesSet ) )
 				{
 					requestContext.abortWith( ACCESS_DENIED );
 					return;
 				}
 			}
-		}
-		else
-		{
-			BaseUser user = new BaseUser( "Setting it here" );
-			user.setCreated( new Date( 0 ) );
 			userProvider.get().setUser( user );
 		}
 	}
@@ -126,14 +120,45 @@ public class SecurityInterceptor implements ContainerRequestFilter
 	|    N O N - P U B L I C    M E T H O D S   |
 	============================================*/
 
-	private BaseUser getUser( String username, String token, String device )
+	private User getUser( String decodedToken )
 	{
+		User user = AppMemcache.getUserFromAuth( decodedToken );
+		if ( user != null ) return user;
+
+		List<String> tokenItr = Splitter.on( "," ).splitToList( decodedToken );
+		if ( tokenItr.size() != 3 ) return null;
+
+		final String userId = tokenItr.get( 0 );
+		final String tokenId = tokenItr.get( 1 );
+		final String device = tokenItr.get( 2 );
+
+		if ( Strings.isNullOrEmpty( userId ) || Strings.isNullOrEmpty( tokenId ) || Strings.isNullOrEmpty( device ) ) return null;
+		user = userDAO.getById( userId );
+		if ( user != null )
+		{
+			Set<AccessToken> tokenSet = user.getTokenSet();
+			for ( AccessToken token : tokenSet )
+			{
+				String targetId = token.getToken();
+				String targetDevice = token.getDeviceId();
+				long expMils = token.getExpDate().getTime();
+				if ( targetId.equals( tokenId ) && targetDevice.equals( device ) && ( expMils > System.currentTimeMillis() ) )
+				{
+					return user;
+				}
+			}
+		}
+
 		return null;
 	}
 
-	private boolean isUserAllowed( BaseUser user, Set<String> rolesSet )
+	private boolean isUserAllowed( User user, Set<String> rolesSet )
 	{
-		return true;
+		for ( String role : rolesSet )
+		{
+			if ( user.getRoleSet().contains( role ) ) return true;
+		}
+		return false;
 	}
 
 	/*--------------------------------------------

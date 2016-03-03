@@ -2,6 +2,7 @@ package com.hs.config;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import com.hs.user.LoginService;
 import com.hs.user.UserService;
 
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class ApplicationResources extends AbstractModule
 		}
 
 		bind( UserService.class );
+		bind( LoginService.class );
 	}
 
 	/*--------------------------------------------

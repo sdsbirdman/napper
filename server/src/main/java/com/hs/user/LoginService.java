@@ -8,17 +8,14 @@ import com.hs.model.User;
 import com.hs.security.RequestUserProvider;
 
 import javax.annotation.security.PermitAll;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 
 /**
  * Created by Evan Ruff on 1/18/2016.
  */
-@Path( "user" )
+@Path( "login" )
 @Produces( "application/json" )
-public class UserService
+public class LoginService
 {
 	/*--------------------------------------------
 	|             C O N S T A N T S             |
@@ -35,7 +32,7 @@ public class UserService
     ============================================*/
 
 	@Inject
-	UserService( RequestUserProvider userProvider )
+	LoginService( RequestUserProvider userProvider )
 	{
 		this.userProvider = userProvider;
 	}
@@ -45,13 +42,13 @@ public class UserService
     ============================================*/
 
 	@GET
-	@Path( "/{username}" )
+	@Path( "/login" )
 	@PermitAll
-	public User hello( @PathParam( "username" ) String username )
+	public User login( @QueryParam( "email" ) String email, @QueryParam( "password" ) String password )
 	{
-		if (Strings.isNullOrEmpty( username ))
+		if (Strings.isNullOrEmpty( email ) || Strings.isNullOrEmpty( password ))
 		{
-			throw new UserNotFoundException( "Must include username" );
+			throw new LoginException( "Missing Parameters" );
 		}
 
 		User authorizedUser = this.userProvider.getUser();
@@ -70,9 +67,9 @@ public class UserService
 	|       I N L I N E    C L A S S E S        |
     ============================================*/
 
-	public static class UserNotFoundException extends ApplicationException implements CodedException
+	public static class LoginException extends ApplicationException implements CodedException
 	{
-		public UserNotFoundException( String message )
+		public LoginException( String message )
 		{
 			super( message );
 		}
@@ -80,7 +77,7 @@ public class UserService
 		@Override
 		public int getCode()
 		{
-			return 1000;
+			return 1001;
 		}
 	}
 }

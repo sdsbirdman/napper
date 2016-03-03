@@ -43,6 +43,7 @@ dependencies {
     compile "com.google.guava:guava:$guavaVersion"
 
     compile "org.apache.commons:commons-lang3:3.3.2"
+    compile 'de.svenkubiak:jBCrypt:0.4.1'
 
     compile 'org.jboss.resteasy:resteasy-jaxrs-all:3.0.14.Final'
     compile 'org.gwizard:gwizard-rest:0.6'
