@@ -34,6 +34,7 @@ public class Bootstrap extends HttpServlet {
         super.init(servletConfig);
 
         BeanConfig beanConfig = new BeanConfig();
+        beanConfig.setTitle("Hello Swagger");
         beanConfig.setVersion("1.0.0");
         beanConfig.setSchemes(new String[]{"http"});
         beanConfig.setHost("swagger-1266.appspot.com");
