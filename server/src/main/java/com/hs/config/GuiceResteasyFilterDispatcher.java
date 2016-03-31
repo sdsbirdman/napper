@@ -58,7 +58,6 @@ public class GuiceResteasyFilterDispatcher extends FilterDispatcher
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
-		System.out.println(request.getRequestURI());
 		if (request.getRequestURI().contains("swagger-ui")) {
 			filterChain.doFilter(request, servletResponse);
 		} else {

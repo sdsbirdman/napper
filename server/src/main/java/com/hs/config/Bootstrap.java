@@ -17,7 +17,7 @@ public class Bootstrap extends HttpServlet {
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion("1.0.0");
         beanConfig.setSchemes(new String[]{"http"});
-        beanConfig.setHost("localhost:8888");
+        beanConfig.setHost("swagger-1266.appspot.com");
         beanConfig.setBasePath("/");
         beanConfig.setResourcePackage("com.hs.user");
         beanConfig.setScan(true);
