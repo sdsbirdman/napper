@@ -4,6 +4,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import com.hs.user.LoginService;
 import com.hs.user.UserService;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -47,6 +49,9 @@ public class ApplicationResources extends AbstractModule
 			System.err.println( "Could not load properties file" );
 			ioEx.printStackTrace( System.err );
 		}
+
+		bind( ApiListingResource.class );
+		bind( SwaggerSerializers.class );
 
 		bind( UserService.class );
 		bind( LoginService.class );

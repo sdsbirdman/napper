@@ -9,6 +9,8 @@ import com.hs.AppMemcache;
 import com.hs.datastore.UserDAO;
 import com.hs.model.AccessToken;
 import com.hs.model.User;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.jboss.resteasy.annotations.interception.ServerInterceptor;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethodInvoker;
@@ -73,7 +75,9 @@ public class SecurityInterceptor implements ContainerRequestFilter
 
 		ResourceMethodInvoker methodInvoker = ( ResourceMethodInvoker ) requestContext.getProperty( RESOURCE_INVOKER );
 		Method method = methodInvoker.getMethod();
-
+		if (isSwaggerMethod(method)) {
+			return;
+		}
 		if ( !method.isAnnotationPresent( PermitAll.class ) )
 		{
 			if ( method.isAnnotationPresent( DenyAll.class ) )
@@ -114,6 +118,11 @@ public class SecurityInterceptor implements ContainerRequestFilter
 			}
 			userProvider.get().setUser( user );
 		}
+	}
+
+	private boolean isSwaggerMethod(Method method) {
+		return ApiListingResource.class.isAssignableFrom(method.getDeclaringClass())
+				|| SwaggerSerializers.class.isAssignableFrom(method.getDeclaringClass());
 	}
 
 	/*--------------------------------------------

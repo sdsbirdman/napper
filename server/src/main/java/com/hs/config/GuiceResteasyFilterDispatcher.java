@@ -8,9 +8,9 @@ import org.jboss.resteasy.plugins.server.servlet.FilterDispatcher;
 import org.jboss.resteasy.spi.Registry;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 /**
  * Created by Evan Ruff on 2/4/2016.
@@ -53,6 +53,17 @@ public class GuiceResteasyFilterDispatcher extends FilterDispatcher
 		final ModuleProcessor processor = new ModuleProcessor( registry, providerFactory );
 
 		processor.processInjector( injector );
+	}
+
+	@Override
+	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+		HttpServletRequest request = (HttpServletRequest) servletRequest;
+		System.out.println(request.getRequestURI());
+		if (request.getRequestURI().contains("swagger-ui")) {
+			filterChain.doFilter(request, servletResponse);
+		} else {
+			super.doFilter(servletRequest, servletResponse, filterChain);
+		}
 	}
 
 	/*--------------------------------------------

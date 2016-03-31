@@ -19,8 +19,8 @@ apply plugin: "war"
 apply plugin: "appengine"
 apply plugin: "com.github.ben-manes.versions"
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
 version = "1.0"
 
 repositories {
@@ -43,7 +43,8 @@ dependencies {
     compile "com.google.guava:guava:$guavaVersion"
 
     compile "org.apache.commons:commons-lang3:3.3.2"
-    compile 'de.svenkubiak:jBCrypt:0.4.1'
+//    compile 'de.svenkubiak:jBCrypt:0.4.1'
+    compile 'org.mindrot:jbcrypt:0.3m'
 
     compile 'org.jboss.resteasy:resteasy-jaxrs-all:3.0.14.Final'
     compile 'org.gwizard:gwizard-rest:0.6'
@@ -53,6 +54,11 @@ dependencies {
     compile "com.cedarsoftware:java-util:1.12.0"
 
     compile "javax.servlet:javax.servlet-api:3.0.1"
+
+    compile "io.swagger:swagger-core:1.5.8"
+    compile "io.swagger:swagger-jersey2-jaxrs:1.5.8"
+    compile 'org.slf4j:slf4j-simple:1.7.20'
+
 
     testCompile "com.google.appengine:appengine-testing:$appengineVersion"
     testCompile "junit:junit:4.+"
@@ -72,7 +78,6 @@ sourceSets {
 tasks.withType(JavaCompile) {
     options.compilerArgs += ["-sourcepath", ""]
 }
-
 
 appengine {
     String appenginePath = "\\.appengine\\local_db.bin"

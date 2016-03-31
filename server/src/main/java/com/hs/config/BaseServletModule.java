@@ -27,8 +27,12 @@ public class BaseServletModule extends ServletModule
 	@Override
 	protected void configureServlets()
 	{
-		filter( "/*" ).through( ObjectifyFilter.class );
+
+		serve("").with(Bootstrap.class);
+
+		filter("/*").through( ObjectifyFilter.class );
 		filter( "/*" ).through( GuiceResteasyFilterDispatcher.class );
+
 
 		// Swagger Setup
 		/*

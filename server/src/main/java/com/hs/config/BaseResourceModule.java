@@ -38,8 +38,6 @@ public class BaseResourceModule extends AbstractModule
 		bind( RequestUserProvider.class ).in( RequestScoped.class );
 		bind( ObjectifyFilter.class ).in( Singleton.class );
 
-		// bind( ApiListingResource.class );
-		// bind( SwaggerSerializers.class );
 	}
 
 	/*--------------------------------------------
